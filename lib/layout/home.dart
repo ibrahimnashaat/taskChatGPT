@@ -178,6 +178,66 @@ class _HomePageState extends State<HomePage> {
                             ),
 
                             const Spacer(),
+                            PopupMenuButton<int>(
+                              itemBuilder: (context) => [
+
+                                PopupMenuItem(
+                                  value: 1,
+
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.delete_outline,color: Colors.red,),
+                                       SizedBox(
+                                         width: 4,
+                                       ),
+                                      Text("Delete",style: Theme.of(context).textTheme.labelMedium?.copyWith(color:Colors.red ),)
+                                    ],
+                                  ),
+                                ),
+
+
+                              ],
+                              offset: Offset(0, 50),
+                              color: Theme.of(context).scaffoldBackgroundColor,
+                              elevation: 2,
+                              iconColor: Theme.of(context).iconTheme.color,
+                              shadowColor: Colors.black,
+                              onSelected: (value) {
+
+                                if (value == 1) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) => AlertDialog(
+                                      backgroundColor: buttonAndUserChatColor,
+                                      title: Text("Confirmation",
+
+                                        style: Theme.of(context).textTheme.labelMedium,
+
+                                      ),
+                                      content: Text("Do you want to delete this chat?",style: Theme.of(context).textTheme.bodyMedium,),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text("No",style: Theme.of(context).textTheme.labelLarge,),
+                                        ),
+                                        TextButton(
+                                          onPressed: () async {
+
+
+                                              _databaseHelper.deleteChat(chatId);
+                                              Navigator.pop(context);
+                                            _loadChats();
+                                          },
+                                          child: Text("Yes",style: Theme.of(context).textTheme.labelLarge,),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
                             Icon(
                               Icons.arrow_forward_ios,
                               color: Theme.of(context).iconTheme.color?.withOpacity(0.6),

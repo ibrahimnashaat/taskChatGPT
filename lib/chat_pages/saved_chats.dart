@@ -194,6 +194,11 @@ class _GeneratedChatState extends State<GeneratedChat> {
           color: Theme.of(context).iconTheme.color,
         ),
         controller: _textController,
+        onChanged: (e){
+          setState(() {
+            _textController.text = e;
+          });
+        },
         decoration: InputDecoration(
           fillColor: Theme.of(context).iconTheme.color?.withOpacity(0.1),
           filled: true,
@@ -227,7 +232,20 @@ class _GeneratedChatState extends State<GeneratedChat> {
               color: Colors.grey.withOpacity(0.5),
             ),
           ),
-          suffixIcon: Container(
+          suffixIcon:_textController.text.isEmpty ? Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(10)),
+              margin: const EdgeInsets.all(8),
+              child: IconButton(
+                onPressed: () async {},
+                icon: Image.asset(
+                  'assets/images/send_icon.png',
+                  color: Colors.white,
+                ),
+              )):  Container(
               width: 50,
               height: 50,
               decoration: BoxDecoration(

@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import 'package:task_chatgpt_app/layout/home.dart';
 import 'package:task_chatgpt_app/shared/colors/shared_colors.dart';
 import '../shared/components/uri_component.dart';
 import 'shared_elements_between_chats/chat_message.dart';
@@ -35,6 +38,18 @@ class _ChatPageState extends State<ChatPage> {
     print(widget.chatId);
   }
 
+  List<Map<String, dynamic>> _chats = [];
+  Future<void> _loadChats() async {
+    try {
+      List<Map<String, dynamic>> chats = await _databaseHelper.getChats();
+      setState(() {
+        _chats = chats;
+      });
+    } catch (e) {
+      print('Error loading chats: $e');
+    }
+  }
+
 
 
   void printMessages() {
@@ -61,77 +76,107 @@ class _ChatPageState extends State<ChatPage> {
   }
 
 
+  Future<void> _deleteEmptyChat()async{
 
+    try{
 
+     await _databaseHelper.deleteChat(widget.chatId);
+
+    }
+        catch(e){
+          print('Error deleting chat: $e');
+        }
+
+  }
 
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Scaffold(
+      child: WillPopScope(
+        onWillPop: () async {
 
-        body: Column(
-          children: [
-            SizedBox(
-              height: 1.h,
-            ),
-            Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 10.0),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: MaterialButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.keyboard_arrow_left,
-                            color: Theme.of(context).iconTheme.color,
-                            size: 30,
-                          ),
-                          SizedBox(
-                            width: 4.w,
-                          ),
-                          Text(
-                            'Back',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const Spacer(),
-                          Image.asset(
-                            'assets/images/chat_gpt_icon.png',
-                            width: 5.w,
-                            height: 5.h,
-                            color: Theme.of(context).iconTheme.color,
-                          ),
-                        ],
+          if (_messages.isEmpty) {
+            _deleteEmptyChat();
+          }
+          _loadChats();
+          Navigator.pushAndRemoveUntil(
+              context, MaterialPageRoute(builder: (context)=>HomePage()), (route) => false);
+
+          return false;
+        },
+        child: Scaffold(
+
+          body: Column(
+            children: [
+              SizedBox(
+                height: 1.h,
+              ),
+              Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: MaterialButton(
+                        onPressed: () {
+                          if (_messages.isEmpty) {
+                          _deleteEmptyChat();
+                          }
+                          _loadChats();
+
+                          Navigator.pushAndRemoveUntil(
+                          context, MaterialPageRoute(builder: (context)=>HomePage()), (route) => false);
+
+                        },
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.keyboard_arrow_left,
+                              color: Theme.of(context).iconTheme.color,
+                              size: 30,
+                            ),
+                            SizedBox(
+                              width: 4.w,
+                            ),
+                            Text(
+                              'Back',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const Spacer(),
+                            Image.asset(
+                              'assets/images/chat_gpt_icon.png',
+                              width: 5.w,
+                              height: 5.h,
+                              color: Theme.of(context).iconTheme.color,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Container(
-                  width: double.infinity,
-                  height: MediaQuery.of(context).size.height * 0.0005,
-                  color: Theme.of(context).iconTheme.color,
-                ),
-              ],
-            ),
-            Expanded(
-              child: _buildList(),
-            ),
-            Visibility(
-              visible: isLoading,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: CircularProgressIndicator(
-                  color: Theme.of(context).iconTheme.color,
+                  Container(
+                    width: double.infinity,
+                    height: MediaQuery.of(context).size.height * 0.0005,
+                    color: Theme.of(context).iconTheme.color,
+                  ),
+                ],
+              ),
+              Expanded(
+                child: _buildList(),
+              ),
+              Visibility(
+                visible: isLoading,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(
+                    color: Theme.of(context).iconTheme.color,
+                  ),
                 ),
               ),
-            ),
-            _buildInput(),
-          ],
+              _buildInput(),
+            ],
+          ),
         ),
       ),
     );
@@ -146,6 +191,11 @@ class _ChatPageState extends State<ChatPage> {
           color: Theme.of(context).iconTheme.color,
         ),
         controller: _textController,
+        onChanged: (e){
+          setState(() {
+            _textController.text = e;
+          });
+        },
         decoration: InputDecoration(
           fillColor: Theme.of(context).iconTheme.color?.withOpacity(0.1),
           filled: true,
@@ -179,7 +229,20 @@ class _ChatPageState extends State<ChatPage> {
               color: Colors.grey.withOpacity(0.5),
             ),
           ),
-          suffixIcon: Container(
+          suffixIcon:  _textController.text.isEmpty ? Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(10)),
+              margin: const EdgeInsets.all(8),
+              child: IconButton(
+                onPressed: () async {},
+                icon: Image.asset(
+                  'assets/images/send_icon.png',
+                  color: Colors.white,
+                ),
+              )):  Container(
               width: 50,
               height: 50,
               decoration: BoxDecoration(
@@ -285,5 +348,8 @@ class _ChatPageState extends State<ChatPage> {
           );
         });
   }
+
+  DateTime? currentBackPressTime;
+
 }
 
