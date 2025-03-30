@@ -13,6 +13,7 @@ Future<String> generateResponse(String prompt) async {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $apiSecretKey',
       },
+
       body: jsonEncode({
         'model': 'gpt-3.5-turbo',
         "messages": [
